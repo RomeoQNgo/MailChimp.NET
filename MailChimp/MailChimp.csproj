@@ -99,6 +99,7 @@
     <Compile Include="Lists\MemberGeo.cs" />
     <Compile Include="Lists\MemberInfo.cs" />
     <Compile Include="Lists\MemberInfoResult.cs" />
+    <Compile Include="Lists\MemberMergeInfo.cs" />
     <Compile Include="Lists\MemberNote.cs" />
     <Compile Include="Lists\MembersResult.cs" />
     <Compile Include="Lists\MergeVar.cs" />

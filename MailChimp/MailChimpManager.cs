@@ -684,7 +684,18 @@ namespace MailChimp
         /// <param name="listId">the list id to connect to (can be gathered using GetLists())</param>
         /// <param name="listOfEmails">an array of up to 50 email address struct to retrieve member information for</param>
         /// <returns></returns>
-        public MemberInfoResult GetMemberInfo(string listId, List<EmailParameter> listOfEmails)
+        public MemberInfoResult<MemberInfo<MemberMergeInfo>> GetMemberInfo(string listId, List<EmailParameter> listOfEmails)
+        {
+            return GetMemberInfo<MemberMergeInfo>(listId, listOfEmails);
+        }
+
+        /// <summary>
+        /// Get all the information for particular members of a list
+        /// </summary>
+        /// <param name="listId">the list id to connect to (can be gathered using GetLists())</param>
+        /// <param name="listOfEmails">an array of up to 50 email address struct to retrieve member information for</param>
+        /// <returns></returns>
+        public MemberInfoResult<MemberInfo<T>> GetMemberInfo<T>(string listId, List<EmailParameter> listOfEmails) where T : new()
         {
             //  Our api action:
             string apiAction = "lists/member-info";
@@ -698,8 +709,9 @@ namespace MailChimp
             };
 
             //  Make the call:
-            return MakeAPICall<MemberInfoResult>(apiAction, args);
+            return MakeAPICall<MemberInfoResult<MemberInfo<T>>>(apiAction, args);
         }
+
 
         /// <summary>
         /// Get all of the list members for a list that are of a particular status and 

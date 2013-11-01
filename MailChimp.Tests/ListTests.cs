@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using MailChimp.Helper;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 
 namespace MailChimp.Tests
 {
@@ -197,11 +198,48 @@ namespace MailChimp.Tests
             emails.Add(email2);
 
             //  Act
-            MemberInfoResult results = mc.GetMemberInfo("48026920aa", emails);
+            var results = mc.GetMemberInfo("48026920aa", emails);
 
             //  Assert
             Assert.IsNotNull(results);
         }
+        
+        [DataContract]
+        public class MemberMergeInfoExt : MemberMergeInfo
+        {
+            [DataMember(Name = "UPDATETYPE")]
+            public string UpdateType { get; set; }
+        }
+
+        [TestMethod]
+        public void GetMemberInfoExt_Successful()
+        {
+            //  Arrange
+            MailChimpManager mc = new MailChimpManager("95d505c3b9d0bb6b700b7e09e3929d4e-us6");
+            //ListResult lists = mc.GetLists();
+
+            List<EmailParameter> emails = new List<EmailParameter>();
+
+            EmailParameter email1 = new EmailParameter()
+            {
+                Email = "john1@gmail.com"
+            };
+
+            EmailParameter email2 = new EmailParameter()
+            {
+                Email = "customeremail2@righthere.com"
+            };
+
+            emails.Add(email1);
+            emails.Add(email2);
+
+            //  Act
+            var results = mc.GetMemberInfo<MemberMergeInfoExt>("48026920aa", emails);
+
+            //  Assert
+            Assert.IsNotNull(results);
+        }
+
 
         [TestMethod]
         public void GetAllMembersForList_Successful()

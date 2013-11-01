@@ -36,9 +36,4 @@ namespace MailChimp.Lists
             set;
         }
     }
-
-    public class MemberInfoResult : MemberInfoResult<MemberInfo>
-    {
-        
-    }
 }
