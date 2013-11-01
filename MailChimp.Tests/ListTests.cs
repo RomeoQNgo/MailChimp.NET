@@ -178,14 +178,14 @@ namespace MailChimp.Tests
         public void GetMemberInfo_Successful()
         {
             //  Arrange
-            MailChimpManager mc = new MailChimpManager(TestGlobal.Test_APIKey);
-            ListResult lists = mc.GetLists();
+            MailChimpManager mc = new MailChimpManager("95d505c3b9d0bb6b700b7e09e3929d4e-us6");
+            //ListResult lists = mc.GetLists();
 
             List<EmailParameter> emails = new List<EmailParameter>();
 
             EmailParameter email1 = new EmailParameter()
             {
-                Email = "customeremail1@righthere.com"
+                Email = "john1@gmail.com"
             };
 
             EmailParameter email2 = new EmailParameter()
@@ -197,7 +197,7 @@ namespace MailChimp.Tests
             emails.Add(email2);
 
             //  Act
-            MemberInfoResult results = mc.GetMemberInfo(lists.Data[1].Id, emails);
+            MemberInfoResult results = mc.GetMemberInfo("48026920aa", emails);
 
             //  Assert
             Assert.IsNotNull(results);

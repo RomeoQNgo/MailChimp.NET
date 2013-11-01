@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
+using ServiceStack.Text;
 
 namespace MailChimp.Lists
 {
@@ -223,9 +224,12 @@ namespace MailChimp.Lists
 
         [DataMember(Name = "merges")]
         public MemberMergeInfo MemberMergeInfo { get; set; }
-
     }
-    
+
+    //public class MemberInfo : MemberInfoBase<MemberMergeInfo>
+    //{
+    //}
+
     [DataContract]
     public class MemberMergeInfo
     {

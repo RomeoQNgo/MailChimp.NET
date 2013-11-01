@@ -1199,12 +1199,12 @@ namespace MailChimp
             string fullUrl = string.Format(_httpsUrl, _dataCenterPrefix, apiAction);
 
             //  Initialize the results to return:
-            T results = default(T);
+            T results = default(T); 
 
             try
             {
                 //  Call the API with the passed arguments:
-                var resultString = fullUrl.PostJsonToUrl(args);
+                var resultString = fullUrl.PostJsonToUrl(args);                
                 results = resultString.Trim().FromJson<T>();
             }
             catch(Exception ex)

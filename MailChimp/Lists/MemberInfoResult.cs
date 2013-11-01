@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace MailChimp.Lists
 {
     [DataContract]
-    public class MemberInfoResult
+    public class MemberInfoResult<T> where T : new ()
     {
         /// <summary>
         /// the number of subscribers successfully found on the list
@@ -30,10 +30,15 @@ namespace MailChimp.Lists
         /// List of members information
         /// </summary>
         [DataMember(Name = "data")]
-        public List<MemberInfo> Data
+        public List<T> Data
         {
             get;
             set;
         }
+    }
+
+    public class MemberInfoResult : MemberInfoResult<MemberInfo>
+    {
+        
     }
 }
