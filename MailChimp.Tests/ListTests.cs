@@ -215,14 +215,14 @@ namespace MailChimp.Tests
         public void GetMemberInfoExt_Successful()
         {
             //  Arrange
-            MailChimpManager mc = new MailChimpManager("95d505c3b9d0bb6b700b7e09e3929d4e-us6");
+            MailChimpManager mc = new MailChimpManager("fbf24a8280b6a0bb96b543344957e57a-us1");
             //ListResult lists = mc.GetLists();
 
             List<EmailParameter> emails = new List<EmailParameter>();
-
+            
             EmailParameter email1 = new EmailParameter()
             {
-                Email = "john1@gmail.com"
+                Email = "rirani@cisco.com"
             };
 
             EmailParameter email2 = new EmailParameter()
@@ -230,11 +230,16 @@ namespace MailChimp.Tests
                 Email = "customeremail2@righthere.com"
             };
 
-            emails.Add(email1);
+            for (int i = 3; i < 8000; i++)
+            {
+                emails.Add(new EmailParameter() { Email = string.Format("customeremail{0}@righthere.com", i) });
+            }
+
+                emails.Add(email1);
             emails.Add(email2);
 
             //  Act
-            var results = mc.GetMemberInfo<MemberMergeInfoExt>("48026920aa", emails);
+            var results = mc.GetMemberInfo<MemberMergeInfoExt>("b0ff8471d3", emails);
 
             //  Assert
             Assert.IsNotNull(results);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using MailChimp.Campaigns;
 using MailChimp.Errors;
 using MailChimp.Folders;
@@ -19,7 +20,7 @@ namespace MailChimp
     public class MailChimpManager
     {
         #region Fields and properties
-        
+
         /// <summary>
         /// The HTTPS endpoint for the API.  
         /// See http://apidocs.mailchimp.com/api/2.0/#api-endpoints for more information
@@ -30,7 +31,7 @@ namespace MailChimp
         /// The datacenter prefix.  This will be automatically determined
         /// based on your API key
         /// </summary>
-        private string _dataCenterPrefix = string.Empty; 
+        private string _dataCenterPrefix = string.Empty;
 
         #endregion
 
@@ -51,7 +52,7 @@ namespace MailChimp
         private string GetDatacenterPrefix(string apiKey)
         {
             //  The key should contain a '-'.  If it doesn't, throw an exception:
-            if(!apiKey.Contains('-'))
+            if (!apiKey.Contains('-'))
             {
                 throw new ArgumentException("API key is not valid.  Must be a valid v2.0 Mailchimp API key.");
             }
@@ -79,12 +80,12 @@ namespace MailChimp
         {
             get;
             set;
-        } 
+        }
 
         #endregion
 
         #region API: Campaigns
-        
+
         /// <summary>
         /// Delete a campaign. Seriously, "poof, gone!" - be careful! 
         /// Seriously, no one can undelete these.
@@ -656,7 +657,7 @@ namespace MailChimp
             //  Make the call:
             return MakeAPICall<List<InterestGrouping>>(apiAction, args);
         }
-        
+
         /// <summary>
         /// Retrieve the locations (countries) that the list's subscribers have been tagged to based on geocoding their IP address
         /// </summary>
@@ -697,6 +698,27 @@ namespace MailChimp
         /// <returns></returns>
         public MemberInfoResult<MemberInfo<T>> GetMemberInfo<T>(string listId, List<EmailParameter> listOfEmails) where T : new()
         {
+            var rets = new MemberInfoResult<MemberInfo<T>>();
+            rets.Data = new List<MemberInfo<T>>();
+            int limit = 50;
+            int count = 0;
+            var tasks = new Dictionary<Guid, Task>();
+            do
+            {
+                var taskId = Guid.NewGuid();
+                var t =
+                    Task.Factory.StartNew(
+                        () => GetMemberInfoAsync<T>(listId, listOfEmails.OrderBy(x => x.Email).Skip(count).Take(limit).ToList(), rets, tasks, taskId));
+                tasks.Add(taskId, t);
+                count = count + limit;
+                t.Wait();
+            } while (count < listOfEmails.Count);
+            return rets;
+        }
+
+        private void GetMemberInfoAsync<T>(string listId, List<EmailParameter> listOfEmails, MemberInfoResult<MemberInfo<T>> recs, Dictionary<Guid, Task> tasks, Guid taskId)
+            where T : new()
+        {
             //  Our api action:
             string apiAction = "lists/member-info";
 
@@ -708,10 +730,16 @@ namespace MailChimp
                 emails = listOfEmails
             };
 
-            //  Make the call:
-            return MakeAPICall<MemberInfoResult<MemberInfo<T>>>(apiAction, args);
+            var ret = MakeAPICall<MemberInfoResult<MemberInfo<T>>>(apiAction, args);
+            recs.ErrorCount = recs.ErrorCount + ret.ErrorCount;
+            recs.SuccessCount = recs.SuccessCount + ret.SuccessCount;
+            recs.Data.AddRange(ret.Data);
+            var task = tasks[taskId];
+            if (task != null)
+            {
+                tasks.Remove(taskId);
+            }
         }
-
 
         /// <summary>
         /// Get all of the list members for a list that are of a particular status and 
@@ -846,7 +874,7 @@ namespace MailChimp
         /// <returns></returns>
         public StaticSegmentActionResult DeleteStaticSegment(string listId, int staticSegmentID)
         {
-             // our api action:
+            // our api action:
             string apiAction = "lists/static-segment-del";
 
             // create our arguements object:
@@ -1204,22 +1232,22 @@ namespace MailChimp
         {
             //  First, make sure the datacenter prefix is set properly.  
             //  If it's not, throw an exception:
-            if(string.IsNullOrEmpty(_dataCenterPrefix))
+            if (string.IsNullOrEmpty(_dataCenterPrefix))
                 throw new ApplicationException("API key not valid (datacenter not specified)");
 
             //  Next, construct the full url based on the passed apiAction:
             string fullUrl = string.Format(_httpsUrl, _dataCenterPrefix, apiAction);
 
             //  Initialize the results to return:
-            T results = default(T); 
+            T results = default(T);
 
             try
             {
                 //  Call the API with the passed arguments:
-                var resultString = fullUrl.PostJsonToUrl(args);                
+                var resultString = fullUrl.PostJsonToUrl(args);
                 results = resultString.Trim().FromJson<T>();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string errorBody = ex.GetResponseBody();
 
