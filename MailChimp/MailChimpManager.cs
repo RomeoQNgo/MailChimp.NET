@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MailChimp.Campaigns;
 using MailChimp.Errors;
@@ -702,21 +703,36 @@ namespace MailChimp
             rets.Data = new List<MemberInfo<T>>();
             int limit = 50;
             int count = 0;
-            var tasks = new Dictionary<Guid, Task>();
+            var tasks = new List<Task>();
             do
             {
-                var taskId = Guid.NewGuid();
+                var batchEmails = listOfEmails.OrderBy(x => x.Email)
+                                              .Skip(count)
+                                              .Take(limit)
+                                              .ToList();
                 var t =
                     Task.Factory.StartNew(
-                        () => GetMemberInfoAsync<T>(listId, listOfEmails.OrderBy(x => x.Email).Skip(count).Take(limit).ToList(), rets, tasks, taskId));
-                tasks.Add(taskId, t);
+                        () =>
+                            {
+                                var ret = GetMemberInfoAsync<T>(listId, batchEmails);
+
+                                rets.ErrorCount = rets.ErrorCount + ret.ErrorCount;
+                                rets.SuccessCount = rets.SuccessCount + ret.SuccessCount;
+                                rets.Data.AddRange(ret.Data);
+                            });
+                tasks.Add(t);
                 count = count + limit;
-                t.Wait();
+                if (tasks.Count(x => !x.IsCompleted) >= 10)
+                {
+                    Thread.Sleep(100);
+                }
             } while (count < listOfEmails.Count);
+
+            Task.WaitAll(tasks.ToArray());
             return rets;
         }
 
-        private void GetMemberInfoAsync<T>(string listId, List<EmailParameter> listOfEmails, MemberInfoResult<MemberInfo<T>> recs, Dictionary<Guid, Task> tasks, Guid taskId)
+        private MemberInfoResult<MemberInfo<T>> GetMemberInfoAsync<T>(string listId, List<EmailParameter> listOfEmails)
             where T : new()
         {
             //  Our api action:
@@ -731,14 +747,7 @@ namespace MailChimp
             };
 
             var ret = MakeAPICall<MemberInfoResult<MemberInfo<T>>>(apiAction, args);
-            recs.ErrorCount = recs.ErrorCount + ret.ErrorCount;
-            recs.SuccessCount = recs.SuccessCount + ret.SuccessCount;
-            recs.Data.AddRange(ret.Data);
-            var task = tasks[taskId];
-            if (task != null)
-            {
-                tasks.Remove(taskId);
-            }
+            return ret;
         }
 
         /// <summary>

@@ -236,7 +236,7 @@ namespace MailChimp.Tests
             }
 
                 emails.Add(email1);
-            emails.Add(email2);
+                emails.Add(email2);
 
             //  Act
             var results = mc.GetMemberInfo<MemberMergeInfoExt>("b0ff8471d3", emails);
