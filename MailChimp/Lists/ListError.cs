@@ -31,7 +31,7 @@ namespace MailChimp.Lists
         /// <summary>
         /// the full error message
         /// </summary>
-        [DataMember(Name = "message")]
+        [DataMember(Name = "error")]
         public string ErrorMessage
         {
             get;
